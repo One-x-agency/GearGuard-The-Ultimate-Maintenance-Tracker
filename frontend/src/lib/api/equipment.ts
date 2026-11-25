@@ -1,4 +1,5 @@
 import { getSupabaseClient } from '@/lib/supabase/client';
+import { sanitizeSearchTerm } from '@/lib/utils';
 import type {
   Equipment,
   EquipmentWithDetails,
@@ -6,6 +7,7 @@ import type {
   PaginationParams,
   PaginatedResponse,
   CreateEquipmentFormData,
+  Updatable,
 } from '@/types';
 import { validateEquipmentData, ApiValidationError } from './validation';
 
@@ -29,8 +31,9 @@ export async function fetchEquipmentList(
     `, { count: 'exact' });
 
   // Apply filters
-  if (filters.search) {
-    query = query.or(`name.ilike.%${filters.search}%,serial_number.ilike.%${filters.search}%,asset_tag.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+  const search = filters.search ? sanitizeSearchTerm(filters.search) : '';
+  if (search) {
+    query = query.or(`name.ilike.%${search}%,serial_number.ilike.%${search}%,asset_tag.ilike.%${search}%,description.ilike.%${search}%`);
   }
 
   if (filters.status && filters.status !== 'all') {
@@ -145,7 +148,7 @@ export async function updateEquipment(
   data: Partial<CreateEquipmentFormData>
 ): Promise<Equipment> {
   // Build update object, handling ownership fields correctly
-  const updateData: Record<string, unknown> = {
+  const updateData: Updatable<'equipment'> = {
     updated_at: new Date().toISOString(),
   };
 

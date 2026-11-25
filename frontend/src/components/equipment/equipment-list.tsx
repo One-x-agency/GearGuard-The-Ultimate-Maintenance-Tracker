@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 export interface EquipmentListItem {
   id: string;
   name: string;
-  serialNumber: string;
+  serialNumber: string | null;
   category: string;
   location: string;
   status: 'active' | 'under_maintenance' | 'scrapped';

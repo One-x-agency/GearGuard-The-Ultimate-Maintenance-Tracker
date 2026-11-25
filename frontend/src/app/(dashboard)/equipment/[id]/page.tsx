@@ -58,12 +58,11 @@ export default function EquipmentDetailPage() {
       location: equipment.location || '',
       status: equipment.status,
       description: equipment.description || undefined,
-      ownershipType: equipment.department ? 'department' : 'employee',
+      ownershipType: equipment.ownership_type,
       ownerName: equipment.owner?.full_name || equipment.department?.name || 'Unassigned',
       defaultTeamName: equipment.default_team?.name,
       purchaseDate: equipment.purchase_date || undefined,
       warrantyExpiry: equipment.warranty_expiry || undefined,
-      lastMaintenanceDate: equipment.last_maintenance_date || undefined,
       specifications: equipment.specifications as Record<string, string> | undefined,
       imageUrl: equipment.image_url || undefined,
     };
@@ -247,7 +246,7 @@ export default function EquipmentDetailPage() {
         <EquipmentForm
           initialData={{
             name: equipmentDetail.name,
-            serialNumber: equipmentDetail.serialNumber,
+            serialNumber: equipmentDetail.serialNumber ?? '',
             category: equipmentDetail.category,
             location: equipmentDetail.location,
             description: equipmentDetail.description,

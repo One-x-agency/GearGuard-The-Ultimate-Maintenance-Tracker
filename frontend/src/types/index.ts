@@ -31,6 +31,11 @@ export interface RequestWithDetails extends MaintenanceRequest {
   is_overdue?: boolean;
 }
 
+// Team with its leader resolved
+export interface TeamWithLeader extends MaintenanceTeam {
+  leader?: Pick<User, 'id' | 'full_name' | 'avatar_url' | 'email'> | null;
+}
+
 // Team member with user details
 export interface TeamMemberWithUser {
   id: string;
@@ -131,7 +136,7 @@ export interface CreateEquipmentFormData {
   purchase_date?: string;
   purchase_cost?: number;
   warranty_expiry?: string;
-  criticality: 'low' | 'medium' | 'high' | 'critical';
+  criticality?: 'low' | 'medium' | 'high' | 'critical';
   ownership_type: 'department' | 'employee';
   department_id?: string;
   owner_id?: string;

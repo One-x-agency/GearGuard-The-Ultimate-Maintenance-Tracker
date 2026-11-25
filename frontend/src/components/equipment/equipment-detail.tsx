@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 export interface EquipmentDetailData {
   id: string;
   name: string;
-  serialNumber: string;
+  serialNumber: string | null;
   category: string;
   location: string;
   status: EquipmentStatus;
@@ -23,7 +23,7 @@ export interface EquipmentDetailData {
   warrantyExpiry?: string;
   lastMaintenanceDate?: string;
   specifications?: Record<string, string>;
-  imageUrl?: string;
+  imageUrl?: string | null;
 }
 
 interface EquipmentDetailProps {

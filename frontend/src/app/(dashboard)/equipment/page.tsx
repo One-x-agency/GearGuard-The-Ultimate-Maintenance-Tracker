@@ -74,7 +74,6 @@ export default function EquipmentPage() {
       location: item.location || '',
       status: item.status,
       ownerName: item.owner?.full_name || 'Unassigned',
-      lastMaintenanceDate: item.last_maintenance_date || undefined,
     }));
   }, [equipmentData]);
 

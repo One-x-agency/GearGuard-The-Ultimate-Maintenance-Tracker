@@ -23,7 +23,7 @@ export interface RequestDetailData {
   type: 'corrective' | 'preventive';
   teamName?: string;
   assigneeName?: string;
-  assigneeAvatar?: string;
+  assigneeAvatar?: string | null;
   requesterName: string;
   dueDate?: string;
   createdAt: string;

@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 
 interface UserAvatarProps {
   name?: string;
-  imageUrl?: string;
+  imageUrl?: string | null;
   size?: 'sm' | 'md' | 'lg';
   showName?: boolean;
   className?: string;

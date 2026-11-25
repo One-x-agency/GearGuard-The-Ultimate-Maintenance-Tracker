@@ -66,7 +66,7 @@ export default function DashboardPage() {
         const { data, error: rpcError } = await Promise.race([rpcPromise, timeout]) as Awaited<typeof rpcPromise>;
 
         if (!rpcError && data) {
-          setStats(data as DashboardStats);
+          setStats(data as unknown as DashboardStats);
         } else {
           // Fallback: fetch basic counts manually
           console.log('RPC not available, using fallback queries');
@@ -169,7 +169,7 @@ export default function DashboardPage() {
           Welcome back, {user?.full_name?.split(' ')[0] || 'User'}!
         </h1>
         <p className="text-muted-foreground">
-          Here's what's happening with your maintenance operations today.
+          Here&apos;s what&apos;s happening with your maintenance operations today.
         </p>
       </div>
 

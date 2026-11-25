@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 interface Technician {
   id: string;
   name: string;
-  avatar?: string;
+  avatar?: string | null;
   specialization?: string;
   activeTaskCount?: number;
 }
@@ -20,7 +20,7 @@ interface AssignTechnicianModalProps {
   onClose: () => void;
   onAssign: (technicianId: string) => void;
   technicians: Technician[];
-  currentAssigneeId?: string;
+  currentAssigneeId?: string | null;
   isLoading?: boolean;
 }
 

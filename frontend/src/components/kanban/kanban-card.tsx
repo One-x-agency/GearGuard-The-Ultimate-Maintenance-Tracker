@@ -18,7 +18,7 @@ export interface KanbanCardData {
   priority: Priority;
   type: 'corrective' | 'preventive';
   assigneeName?: string;
-  assigneeAvatar?: string;
+  assigneeAvatar?: string | null;
   dueDate?: string;
 }
 

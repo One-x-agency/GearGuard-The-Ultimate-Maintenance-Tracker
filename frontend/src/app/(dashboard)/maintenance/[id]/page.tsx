@@ -77,11 +77,17 @@ export default function MaintenanceDetailPage() {
       dueDate: request.due_date || undefined,
       createdAt: request.created_at,
       completedAt: request.completed_at || undefined,
-      workNotes: request.work_notes || undefined,
+      // Work notes live in maintenance_logs as note_added entries (oldest first)
+      workNotes:
+        logs
+          .filter((log) => log.action === 'note_added' && log.notes)
+          .map((log) => log.notes)
+          .reverse()
+          .join('\n\n') || undefined,
       resolution: request.resolution_notes || undefined,
       laborHours: request.labor_hours || undefined,
     };
-  }, [request]);
+  }, [request, logs]);
 
   // Transform logs to timeline entries
   const timelineEntries: TimelineEntry[] = React.useMemo(() => {
@@ -120,7 +126,7 @@ export default function MaintenanceDetailPage() {
       id: requestId,
       assignedToId: technicianId,
       assignedById: user.id,
-      teamId: request?.assigned_team_id,
+      teamId: request?.assigned_team_id ?? undefined,
     });
     setShowAssignModal(false);
   };

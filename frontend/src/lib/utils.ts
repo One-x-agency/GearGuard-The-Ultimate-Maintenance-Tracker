@@ -79,3 +79,22 @@ export function getDueStatus(dueDate: string | null, status: string): 'overdue' 
   if (diffInHours < 48) return 'due_soon';
   return 'on_track';
 }
+
+/**
+ * Makes user input safe to embed in a PostgREST `.or()` / `ilike` filter string.
+ * Characters such as `,` `(` `)` would otherwise change the filter's meaning.
+ */
+export function sanitizeSearchTerm(term: string): string {
+  return term.replace(/[,()*%\\"':]/g, ' ').trim();
+}
+
+/**
+ * Returns `path` only if it is a same-site relative path (e.g. "/equipment/1").
+ * Prevents open redirects such as "//evil.com" or "https://evil.com".
+ */
+export function safeRedirectPath(path: string | null | undefined, fallback = '/dashboard'): string {
+  if (!path || !path.startsWith('/') || path.startsWith('//') || path.startsWith('/\\')) {
+    return fallback;
+  }
+  return path;
+}

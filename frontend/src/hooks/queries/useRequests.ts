@@ -1,7 +1,6 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
 import {
   fetchRequestList,
   fetchRequestsByStatus,
@@ -22,16 +21,6 @@ import type {
   MaintenanceRequest,
   RequestStatus,
 } from '@/types';
-
-// Helper to check and warn about audit log failures
-function checkAuditLogResult(result: { auditLogSuccess?: boolean; auditLogError?: string }) {
-  if (result.auditLogSuccess === false) {
-    toast.warning('Action completed, but audit log failed to save', {
-      description: result.auditLogError || 'The action was successful but the audit trail could not be recorded.',
-      duration: 5000,
-    });
-  }
-}
 
 // Query keys
 export const requestKeys = {
@@ -130,9 +119,7 @@ export function useUpdateRequestStatus() {
       userId: string;
       notes?: string;
     }) => updateRequestStatus(id, status, userId, notes),
-    onSuccess: (result, { id }) => {
-      // Check if audit log failed and warn user
-      checkAuditLogResult(result);
+    onSuccess: (_result, { id }) => {
 
       queryClient.invalidateQueries({ queryKey: requestKeys.lists() });
       queryClient.invalidateQueries({ queryKey: requestKeys.byStatus() });
@@ -158,9 +145,7 @@ export function useAssignRequest() {
       assignedById: string;
       teamId?: string;
     }) => assignRequest(id, assignedToId, assignedById, teamId),
-    onSuccess: (result, { id }) => {
-      // Check if audit log failed and warn user
-      checkAuditLogResult(result);
+    onSuccess: (_result, { id }) => {
 
       queryClient.invalidateQueries({ queryKey: requestKeys.lists() });
       queryClient.invalidateQueries({ queryKey: requestKeys.byStatus() });
@@ -213,9 +198,7 @@ export function useCompleteRequest() {
       partsUsed?: string;
       actualCost?: number;
     }) => completeRequest(id, userId, resolution, laborHours, partsUsed, actualCost),
-    onSuccess: (result, { id }) => {
-      // Check if audit log failed and warn user
-      checkAuditLogResult(result);
+    onSuccess: (_result, { id }) => {
 
       queryClient.invalidateQueries({ queryKey: requestKeys.lists() });
       queryClient.invalidateQueries({ queryKey: requestKeys.byStatus() });

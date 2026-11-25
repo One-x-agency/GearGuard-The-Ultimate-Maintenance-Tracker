@@ -1,4 +1,5 @@
 import { getSupabaseClient } from '@/lib/supabase/client';
+import { sanitizeSearchTerm } from '@/lib/utils';
 import type {
   MaintenanceRequest,
   RequestWithDetails,
@@ -16,6 +17,12 @@ import {
 } from './validation';
 
 const supabase = getSupabaseClient();
+
+const CLOSED_STATUSES: RequestStatus[] = ['completed', 'verified', 'cancelled'];
+
+function isRequestOverdue(req: { due_date: string | null; status: RequestStatus }, now = new Date()): boolean {
+  return !!req.due_date && new Date(req.due_date) < now && !CLOSED_STATUSES.includes(req.status);
+}
 
 // Note: Audit logging is handled by database triggers in migration 007:
 // - log_request_status_change() logs status, assignment, and priority changes
@@ -41,8 +48,9 @@ export async function fetchRequestList(
     `, { count: 'exact' });
 
   // Apply filters
-  if (filters.search) {
-    query = query.or(`title.ilike.%${filters.search}%,request_number.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+  const search = filters.search ? sanitizeSearchTerm(filters.search) : '';
+  if (search) {
+    query = query.or(`title.ilike.%${search}%,request_number.ilike.%${search}%,description.ilike.%${search}%`);
   }
 
   if (filters.status && filters.status !== 'all') {
@@ -98,8 +106,7 @@ export async function fetchRequestList(
   const now = new Date();
   const requestsWithOverdue = (data || []).map((req) => ({
     ...req,
-    is_overdue: req.due_date && new Date(req.due_date) < now &&
-      !['completed', 'verified', 'cancelled'].includes(req.status),
+    is_overdue: isRequestOverdue(req, now),
   }));
 
   return {
@@ -139,7 +146,7 @@ export async function fetchRequestsByStatus(): Promise<Record<RequestStatus, Req
   (data || []).forEach((req) => {
     const request = {
       ...req,
-      is_overdue: req.due_date && new Date(req.due_date) < now,
+      is_overdue: isRequestOverdue(req, now),
     } as RequestWithDetails;
 
     if (grouped[req.status as RequestStatus]) {
@@ -169,8 +176,7 @@ export async function fetchRequest(id: string): Promise<RequestWithDetails> {
   const now = new Date();
   return {
     ...data,
-    is_overdue: data.due_date && new Date(data.due_date) < now &&
-      !['completed', 'verified', 'cancelled'].includes(data.status),
+    is_overdue: isRequestOverdue(data, now),
   } as RequestWithDetails;
 }
 
@@ -353,24 +359,23 @@ export async function addWorkLog(
     updates.parts_used = partsUsed;
   }
 
-  await supabase
+  // Supabase returns errors instead of throwing, so check each result explicitly.
+  const { error: updateError } = await supabase
     .from('maintenance_requests')
     .update(updates)
     .eq('id', requestId);
 
-  // Add log entry for work notes (this is NOT logged by triggers, so we do it manually)
-  // This may fail if user doesn't have access, but that's expected behavior
-  try {
-    await supabase.from('maintenance_logs').insert({
-      request_id: requestId,
-      user_id: userId,
-      action: 'note_added' as const,
-      notes,
-    });
-  } catch (err) {
-    console.warn('[Work Log] Failed to log work note:', err);
-    // Don't throw - the main update succeeded
-  }
+  if (updateError) throw updateError;
+
+  // Work notes are stored as log entries (not logged by DB triggers)
+  const { error: logError } = await supabase.from('maintenance_logs').insert({
+    request_id: requestId,
+    user_id: userId,
+    action: 'note_added',
+    notes,
+  });
+
+  if (logError) throw logError;
 }
 
 // Complete request with resolution

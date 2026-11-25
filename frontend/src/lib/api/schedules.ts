@@ -1,10 +1,14 @@
 import { getSupabaseClient } from '@/lib/supabase/client';
-import type { PreventiveSchedule } from '@/types';
+import type { Equipment, PreventiveSchedule } from '@/types';
+
+export type ScheduleWithEquipment = PreventiveSchedule & {
+  equipment: Pick<Equipment, 'id' | 'name' | 'serial_number' | 'location'> | null;
+};
 
 const supabase = getSupabaseClient();
 
 // Fetch all preventive schedules
-export async function fetchScheduleList(): Promise<PreventiveSchedule[]> {
+export async function fetchScheduleList(): Promise<ScheduleWithEquipment[]> {
   const { data, error } = await supabase
     .from('preventive_schedules')
     .select(`
@@ -22,7 +26,7 @@ export async function fetchScheduleList(): Promise<PreventiveSchedule[]> {
 export async function fetchSchedulesForCalendar(
   startDate: string,
   endDate: string
-): Promise<PreventiveSchedule[]> {
+): Promise<ScheduleWithEquipment[]> {
   const { data, error } = await supabase
     .from('preventive_schedules')
     .select(`
@@ -124,7 +128,7 @@ export async function fetchCalendarEvents(
   startDate: string,
   endDate: string
 ): Promise<{
-  schedules: PreventiveSchedule[];
+  schedules: ScheduleWithEquipment[];
   requests: any[];
 }> {
   const [schedules, requests] = await Promise.all([

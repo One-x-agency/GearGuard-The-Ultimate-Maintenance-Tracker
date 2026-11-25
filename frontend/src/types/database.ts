@@ -21,7 +21,7 @@ export type LogAction = 'created' | 'status_changed' | 'assigned' | 'reassigned'
 export type FrequencyType = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
 export type NotificationType = 'request_created' | 'request_assigned' | 'status_changed' | 'request_completed' | 'request_overdue' | 'comment_added' | 'equipment_scrapped' | 'system';
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
       users: {
@@ -61,6 +61,15 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'users_department_id_fkey';
+            columns: ['department_id'];
+            isOneToOne: false;
+            referencedRelation: 'departments';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       departments: {
         Row: {
@@ -96,6 +105,22 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'departments_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'departments';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'fk_departments_manager';
+            columns: ['manager_id'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       equipment: {
         Row: {
@@ -185,6 +210,43 @@ export interface Database {
           scrapped_by?: string | null;
           scrap_reason?: string | null;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'equipment_department_id_fkey';
+            columns: ['department_id'];
+            isOneToOne: false;
+            referencedRelation: 'departments';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'equipment_owner_id_fkey';
+            columns: ['owner_id'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'equipment_default_team_id_fkey';
+            columns: ['default_team_id'];
+            isOneToOne: false;
+            referencedRelation: 'maintenance_teams';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'equipment_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'equipment_scrapped_by_fkey';
+            columns: ['scrapped_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       maintenance_teams: {
         Row: {
@@ -217,6 +279,15 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'maintenance_teams_leader_id_fkey';
+            columns: ['leader_id'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       team_members: {
         Row: {
@@ -240,6 +311,22 @@ export interface Database {
           joined_at?: string;
           is_active?: boolean;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'team_members_team_id_fkey';
+            columns: ['team_id'];
+            isOneToOne: false;
+            referencedRelation: 'maintenance_teams';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'team_members_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       maintenance_requests: {
         Row: {
@@ -335,6 +422,64 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'maintenance_requests_equipment_id_fkey';
+            columns: ['equipment_id'];
+            isOneToOne: false;
+            referencedRelation: 'equipment';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'maintenance_requests_requester_id_fkey';
+            columns: ['requester_id'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'maintenance_requests_assigned_team_id_fkey';
+            columns: ['assigned_team_id'];
+            isOneToOne: false;
+            referencedRelation: 'maintenance_teams';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'maintenance_requests_assigned_to_id_fkey';
+            columns: ['assigned_to_id'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'maintenance_requests_assigned_by_id_fkey';
+            columns: ['assigned_by_id'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'maintenance_requests_verified_by_id_fkey';
+            columns: ['verified_by_id'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'maintenance_requests_cancelled_by_id_fkey';
+            columns: ['cancelled_by_id'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'fk_requests_schedule';
+            columns: ['schedule_id'];
+            isOneToOne: false;
+            referencedRelation: 'preventive_schedules';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       maintenance_logs: {
         Row: {
@@ -370,6 +515,22 @@ export interface Database {
           notes?: string | null;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'maintenance_logs_request_id_fkey';
+            columns: ['request_id'];
+            isOneToOne: false;
+            referencedRelation: 'maintenance_requests';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'maintenance_logs_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       preventive_schedules: {
         Row: {
@@ -417,6 +578,22 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'preventive_schedules_equipment_id_fkey';
+            columns: ['equipment_id'];
+            isOneToOne: false;
+            referencedRelation: 'equipment';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'preventive_schedules_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       notifications: {
         Row: {
@@ -455,6 +632,15 @@ export interface Database {
           read_at?: string | null;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'notifications_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       file_attachments: {
         Row: {
@@ -490,6 +676,15 @@ export interface Database {
           uploaded_by?: string;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'file_attachments_uploaded_by_fkey';
+            columns: ['uploaded_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
       };
     };
     Views: {
@@ -541,8 +736,11 @@ export interface Database {
       frequency_type: FrequencyType;
       notification_type: NotificationType;
     };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
   };
-}
+};
 
 // Helper types for easier usage
 export type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row'];

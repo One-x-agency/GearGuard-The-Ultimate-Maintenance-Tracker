@@ -5,7 +5,6 @@ node_modules/
 .env
 .env.local
 .env.*.local
-.env.example
 
 # Documentation
 docs/
@@ -31,3 +30,7 @@ build/
 
 # Windows reserved names
 nul
+
+# TypeScript / tooling caches
+*.tsbuildinfo
+supabase/.temp/

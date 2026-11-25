@@ -19,15 +19,30 @@ function useTabs() {
 }
 
 interface TabsProps {
-  value: string;
-  onValueChange: (value: string) => void;
+  /** Controlled mode: pass `value` together with `onValueChange`. */
+  value?: string;
+  onValueChange?: (value: string) => void;
+  /** Uncontrolled mode: initial tab when `value` is not provided. */
+  defaultValue?: string;
   children: React.ReactNode;
   className?: string;
 }
 
-export function Tabs({ value, onValueChange, children, className }: TabsProps) {
+export function Tabs({ value, onValueChange, defaultValue = '', children, className }: TabsProps) {
+  const [internalValue, setInternalValue] = React.useState(defaultValue);
+  const isControlled = value !== undefined;
+  const currentValue = isControlled ? value : internalValue;
+
+  const handleChange = React.useCallback(
+    (next: string) => {
+      if (!isControlled) setInternalValue(next);
+      onValueChange?.(next);
+    },
+    [isControlled, onValueChange]
+  );
+
   return (
-    <TabsContext.Provider value={{ value, onChange: onValueChange }}>
+    <TabsContext.Provider value={{ value: currentValue, onChange: handleChange }}>
       <div className={className}>{children}</div>
     </TabsContext.Provider>
   );

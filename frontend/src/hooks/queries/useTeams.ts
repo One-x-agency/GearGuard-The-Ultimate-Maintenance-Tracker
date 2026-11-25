@@ -22,7 +22,7 @@ export const teamKeys = {
   details: () => [...teamKeys.all, 'detail'] as const,
   detail: (id: string) => [...teamKeys.details(), id] as const,
   members: (id: string) => [...teamKeys.all, 'members', id] as const,
-  technicians: (teamId?: string) => [...teamKeys.all, 'technicians', teamId] as const,
+  technicians: (teamId?: string | null) => [...teamKeys.all, 'technicians', teamId] as const,
   workload: (id: string) => [...teamKeys.all, 'workload', id] as const,
 };
 
@@ -50,7 +50,7 @@ export function useTeamMembers(teamId: string) {
   });
 }
 
-export function useAvailableTechnicians(teamId?: string) {
+export function useAvailableTechnicians(teamId?: string | null) {
   return useQuery({
     queryKey: teamKeys.technicians(teamId),
     queryFn: () => fetchAvailableTechnicians(teamId),

@@ -3,13 +3,14 @@ import type {
   MaintenanceTeam,
   TeamMember,
   TeamMemberWithUser,
+  TeamWithLeader,
   User,
 } from '@/types';
 
 const supabase = getSupabaseClient();
 
 // Fetch all teams
-export async function fetchTeamList(): Promise<MaintenanceTeam[]> {
+export async function fetchTeamList(): Promise<TeamWithLeader[]> {
   const { data, error } = await supabase
     .from('maintenance_teams')
     .select(`
@@ -24,7 +25,7 @@ export async function fetchTeamList(): Promise<MaintenanceTeam[]> {
 }
 
 // Fetch single team by ID with members
-export async function fetchTeam(id: string): Promise<MaintenanceTeam & { members: TeamMemberWithUser[] }> {
+export async function fetchTeam(id: string): Promise<TeamWithLeader & { members: TeamMemberWithUser[] }> {
   const { data: team, error: teamError } = await supabase
     .from('maintenance_teams')
     .select(`
@@ -148,7 +149,7 @@ export async function fetchTeamMembers(teamId: string): Promise<TeamMemberWithUs
 }
 
 // Get available technicians (for assignment)
-export async function fetchAvailableTechnicians(teamId?: string): Promise<User[]> {
+export async function fetchAvailableTechnicians(teamId?: string | null): Promise<User[]> {
   let query = supabase
     .from('users')
     .select('*')

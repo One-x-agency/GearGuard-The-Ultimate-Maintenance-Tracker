@@ -1,94 +1,67 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import type { Database } from '@/types/database';
 
+const AUTH_ROUTES = ['/login', '/register', '/forgot-password'];
+
+const PROTECTED_ROUTES = [
+  '/dashboard',
+  '/equipment',
+  '/maintenance',
+  '/teams',
+  '/calendar',
+  '/reports',
+  '/settings',
+];
+
+function matchesRoute(pathname: string, routes: string[]) {
+  return routes.some((route) => pathname === route || pathname.startsWith(`${route}/`));
+}
+
 export async function updateSession(request: NextRequest) {
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  });
+  let response = NextResponse.next({ request });
 
   const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
+        getAll() {
+          return request.cookies.getAll();
         },
-        set(name: string, value: string, options: CookieOptions) {
-          request.cookies.set({
-            name,
-            value,
-            ...options,
-          });
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          });
-          response.cookies.set({
-            name,
-            value,
-            ...options,
-          });
-        },
-        remove(name: string, options: CookieOptions) {
-          request.cookies.set({
-            name,
-            value: '',
-            ...options,
-          });
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          });
-          response.cookies.set({
-            name,
-            value: '',
-            ...options,
-          });
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+          response = NextResponse.next({ request });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          );
         },
       },
     }
   );
 
-  // Refresh session if it exists
-  const { data: { user } } = await supabase.auth.getUser();
+  // Refreshes the session if it exists. Must run before any redirect logic.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  // Define protected routes
-  const isAuthRoute = request.nextUrl.pathname.startsWith('/login') ||
-    request.nextUrl.pathname.startsWith('/register') ||
-    request.nextUrl.pathname.startsWith('/forgot-password');
+  const { pathname } = request.nextUrl;
 
-  const isProtectedRoute = request.nextUrl.pathname.startsWith('/dashboard') ||
-    request.nextUrl.pathname.startsWith('/equipment') ||
-    request.nextUrl.pathname.startsWith('/maintenance') ||
-    request.nextUrl.pathname.startsWith('/teams') ||
-    request.nextUrl.pathname.startsWith('/calendar') ||
-    request.nextUrl.pathname.startsWith('/settings');
-
-  // Redirect unauthenticated users from protected routes
-  if (!user && isProtectedRoute) {
+  // Redirect unauthenticated users away from protected routes
+  if (!user && matchesRoute(pathname, PROTECTED_ROUTES)) {
     const redirectUrl = new URL('/login', request.url);
-    redirectUrl.searchParams.set('redirectTo', request.nextUrl.pathname);
+    redirectUrl.searchParams.set('redirectTo', pathname);
     return NextResponse.redirect(redirectUrl);
   }
 
-  // Redirect authenticated users from auth routes to dashboard
-  if (user && isAuthRoute) {
+  // Redirect authenticated users away from auth routes
+  if (user && matchesRoute(pathname, AUTH_ROUTES)) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
   // Redirect root to dashboard or login
-  if (request.nextUrl.pathname === '/') {
-    if (user) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
-    } else {
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
+  if (pathname === '/') {
+    return NextResponse.redirect(new URL(user ? '/dashboard' : '/login', request.url));
   }
 
   return response;

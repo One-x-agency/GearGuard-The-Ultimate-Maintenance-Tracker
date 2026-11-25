@@ -10,12 +10,12 @@ import { cn } from '@/lib/utils';
 export interface EquipmentCardData {
   id: string;
   name: string;
-  serialNumber: string;
+  serialNumber: string | null;
   category: string;
   location: string;
   status: EquipmentStatus;
   lastMaintenanceDate?: string;
-  imageUrl?: string;
+  imageUrl?: string | null;
 }
 
 interface EquipmentCardProps {
